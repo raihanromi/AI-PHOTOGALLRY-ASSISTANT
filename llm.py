@@ -35,14 +35,18 @@ def generate_response(query_text: str, image_ids: list) :
     """
 
     url = "http://localhost:11434/api/generate"  # Adjust this endpoint as needed.
+    headers = {"Content-Type": "application/json"}
 
     payload = {
+        "model": "llava",
         "query": query_text,
+        "stream":False
     }
     try:
-        response = requests.post(url, json=payload, timeout=10)
+        response = requests.post(url,  headers=headers,json=payload)
+        print(response.text)
         response.raise_for_status()
         data = response.json()
-        return data.get("response", "No response provided from LLaVA.")
+        return response.text
     except requests.exceptions.RequestException as e:
         return f"Error calling LLaVA: {e}"

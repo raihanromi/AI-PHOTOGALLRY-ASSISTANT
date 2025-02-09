@@ -1,5 +1,6 @@
 import io
 import os
+import requests
 from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -90,14 +91,30 @@ async def chat_page(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
 
 @app.post("/chat", response_class=HTMLResponse)
+@app.post("/chat", response_class=HTMLResponse)
 async def process_query(request: Request, query_text: str = Form(...)):
+    # Send chat text to the Ollama model
+    url = "http://localhost:11434/api/generate"  # Replace with your actual endpoint
+    payload = {
+        "model": "llava",
+        "text": query_text
+    }
+    headers = {
+        "Content-Type": "application/json"
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+    print(response.text)
+    if response.status_code == 200:
+        response_data = response.json()
+        response_text = response_data.get("response", "")
+    else:
+        response_text = "Failed to get response from the model"
 
     # Compute text embedding for the query.
     query_embedding = get_text_embedding(query_text)
     # Retrieve matching images.
     retrieved_ids = query_images(query_embedding)
-    # Generate a response using LLaVA.
-    response_text = generate_response(query_text, retrieved_ids)
     # Prepare list of images with captions.
     retrieved_images = [{"id": img_id,
                          "path": "/" + image_store.get(img_id, {}).get("path", ""),
