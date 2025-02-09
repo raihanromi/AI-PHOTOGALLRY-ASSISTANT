@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+chromadb
+sentence-transformers
+pillow
+torch
+numpy
+jinja2
+requests
+httpx

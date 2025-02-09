@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Gallery{% endblock %}
+{% block content %}
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-xl font-semibold mb-4">Image Gallery</h2>
+    {% if images|length == 0 %}
+      <p>No images uploaded yet.</p>
+    {% else %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {% for image in images %}
+          <div class="bg-white p-4 rounded shadow">
+            <p class="font-semibold">{{ image.id }}</p>
+            <img src="{{ image.path }}" alt="{{ image.id }}" class="mt-2 w-full h-auto object-cover rounded">
+            <p class="mt-2 text-gray-600 text-sm">{{ image.caption }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}

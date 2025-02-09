@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Chat with Bot{% endblock %}
+{% block content %}
+  <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
+    <h2 class="text-xl font-semibold mb-4">Chat with the Bot</h2>
+    <form action="/chat" method="post">
+      <label for="query_text" class="block text-sm font-medium text-gray-700">Enter your query:</label>
+      <input type="text" id="query_text" name="query_text" placeholder="e.g., Show me photos of sunsets" required class="mt-1 block w-full border border-gray-300 rounded p-2">
+      <button type="submit" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Search</button>
+    </form>
+  </div>
+{% endblock %}
