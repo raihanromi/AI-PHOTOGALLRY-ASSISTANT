@@ -1,29 +1,32 @@
 import io
 import os
+import json
+import base64
 import requests
-from fastapi import FastAPI, File, UploadFile, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.templating import Jinja2Templates
 import uvicorn
+import ollama
+from typing import List
 from PIL import Image
+from fastapi import (
+    FastAPI, File, UploadFile, HTTPException, Request, Form, Depends
+)
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 from models import QueryRequest, QueryResponse, ImageUploadResponse
 from db import init_db, add_image_embedding, query_images
 from embeddings import get_text_embedding, get_image_embedding
 from llm import generate_response, generate_caption_for_image
 
+
+
 app = FastAPI(title="Conversational Memory Bot API")
 
-# Enable CORS if needed.
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
+
+Depends(dependency=None , use_cache=False)
+IMAGEDIR = "images/"
+
 
 # Initialize templates
 templates = Jinja2Templates(directory="templates")
@@ -45,71 +48,28 @@ async def read_index(request: Request):
 
 @app.get("/upload", response_class=HTMLResponse)
 async def upload_page(request: Request):
-    return templates.TemplateResponse("upload.html", {"request": request})
-
-@app.post("/upload", response_class=HTMLResponse)
-async def upload_image(request: Request, file: UploadFile = File(...)):
-    try:
-        image_bytes = await file.read()
-        image = Image.open(io.BytesIO(image_bytes))
-        # Compute image embedding (using your unified CLIP model)
-        embedding = get_image_embedding(image)
-        image_id = file.filename
-
-        os.makedirs("data", exist_ok=True)
-        file_path = os.path.join("data", image_id)
-        with open(file_path, "wb") as f:
-            f.write(image_bytes)
-
-        add_image_embedding(image_id, embedding)
-
-        # Generate caption by sending Base64-encoded image to Ollama
-        caption = await generate_caption_for_image(image_bytes)
-        print(caption)
+    return templates.TemplateResponse("upload_images.html", {"request": request})
 
 
-        image_store[image_id] = {"path": file_path, "caption": caption}
-
-        message = f"Image '{image_id}' uploaded successfully! Caption: {caption}"
-        return templates.TemplateResponse("upload.html", {"request": request, "message": message})
-    except Exception as e:
-        return templates.TemplateResponse("upload.html", {"request": request, "message": f"Error: {str(e)}"})
-
-
-@app.get("/gallery", response_class=HTMLResponse)
-async def gallery(request: Request):
-    """
-    Render a gallery page listing all uploaded images with captions.
-    """
-    # Prepare image list from the in-memory store.
-    images = [{"id": img_id, "path": "/" + meta["path"], "caption": meta["caption"]} for img_id, meta in image_store.items()]
-    return templates.TemplateResponse("gallery.html", {"request": request, "images": images})
 
 
 @app.get("/chat", response_class=HTMLResponse)
 async def chat_page(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
 
-@app.post("/chat", response_class=HTMLResponse)
+
 @app.post("/chat", response_class=HTMLResponse)
 async def process_query(request: Request, query_text: str = Form(...)):
-    # Send chat text to the Ollama model
-    url = "http://localhost:11434/api/generate"  # Replace with your actual endpoint
-    payload = {
-        "model": "llava",
-        "text": query_text
-    }
-    headers = {
-        "Content-Type": "application/json"
-    }
+    full_response = ""
 
-    response = requests.post(url, json=payload, headers=headers)
-    print(response.text)
-    if response.status_code == 200:
-        response_data = response.json()
-        response_text = response_data.get("response", "")
-    else:
-        response_text = "Failed to get response from the model"
+    for response in ollama.generate(model="llava", prompt=query_text, stream=True):
+        print(response["response"], end="", flush=True)
+        full_response += response["response"]
+
+    return templates.TemplateResponse("chat.html", {
+        "request": request,
+        "data": full_response
+    })
 
     # Compute text embedding for the query.
     query_embedding = get_text_embedding(query_text)
@@ -121,7 +81,7 @@ async def process_query(request: Request, query_text: str = Form(...)):
                          "caption": image_store.get(img_id, {}).get("caption", "")}
                         for img_id in retrieved_ids if img_id in image_store]
 
-    return templates.TemplateResponse("result.html", {
+    return templates.TemplateResponse("chat.html", {
         "request": request,
         "query": query_text,
         "response": response_text,
@@ -139,5 +99,62 @@ async def related_images(image_id: str):
     return related_images
 
 
+
+@app.post("/upload")
+async def upload_file(request: Request, files: List[UploadFile] = File(...)):
+    for file in files:
+        image_bytes = await file.read()
+        image = Image.open(io.BytesIO(image_bytes))
+        embedding = get_image_embedding(image)
+
+        image_id = file.filename
+
+        os.makedirs("data", exist_ok=True)
+        file_path = os.path.join("data", image_id)
+        with open(file_path, "wb") as f:
+            f.write(image_bytes)
+
+            # Generate caption by sending Base64-encoded image to Ollama
+            caption = await generate_caption_for_image(image_bytes)
+
+            add_image_embedding(image_id, embedding)  ## TODO : ADD image caption to the chromadb
+
+            image_store[image_id] = {"path": file_path, "caption": caption}
+
+
+    return templates.TemplateResponse("gallery.html", {"request": request})
+
+
+@app.get("/gallery", response_class=HTMLResponse)
+async def gallery(request: Request):
+
+    # Prepare image list from the in-memory store.
+    images = [{"id": img_id, "path": "/" + meta["path"], "caption": meta["caption"]} for img_id, meta in image_store.items()]
+    return templates.TemplateResponse("gallery.html", {"request": request, "images": images})
+
+
+@app.get("/viewer", response_class=HTMLResponse)
+async def viewer(request: Request):
+    return templates.TemplateResponse("viewer.html", {"request": request})
+
+
+
+
+@app.post("/generate")
+async def generate_text(request: Request, prompt: str = Form(...)):
+
+    full_response = ""
+
+    for response in ollama.generate(model="llava", prompt=prompt, stream=True):
+        print(response["response"], end="", flush=True)
+        full_response += response["response"]
+
+    return templates.TemplateResponse("chat.html", {
+        "request": request,
+        "data": full_response
+    })
+
+
 if __name__ == "__main__":
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+

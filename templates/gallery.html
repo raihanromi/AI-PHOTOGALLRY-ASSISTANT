@@ -1,20 +1,71 @@
-{% extends "base.html" %}
-{% block title %}Gallery{% endblock %}
-{% block content %}
-  <div class="max-w-4xl mx-auto">
-    <h2 class="text-xl font-semibold mb-4">Image Gallery</h2>
-    {% if images|length == 0 %}
-      <p>No images uploaded yet.</p>
-    {% else %}
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {% for image in images %}
-          <div class="bg-white p-4 rounded shadow">
-            <p class="font-semibold">{{ image.id }}</p>
-            <img src="{{ image.path }}" alt="{{ image.id }}" class="mt-2 w-full h-auto object-cover rounded">
-            <p class="mt-2 text-gray-600 text-sm">{{ image.caption }}</p>
-          </div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  </div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageChat Hub - Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+   <!-- Navigation -->
+    <nav class="bg-white shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-blue-600 flex items-center gap-2">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                ImageChat Hub
+            </div>
+            <div class="flex gap-6">
+                <a href="/" class="text-blue-600 font-medium">Home</a>
+                <a href="/gallery" class="text-gray-600 hover:text-blue-600">Gallery</a>
+                <a href="/upload" class="text-gray-600 hover:text-blue-600">Upload</a>
+                <a href="/viewer" class="text-gray-600 hover:text-blue-600">Image Viewer</a>
+                <a href="/chat" class="text-gray-600 hover:text-blue-600">Chat</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Image Gallery</h1>
+            <div class="flex gap-4">
+                <select class="px-4 py-2 border rounded-lg">
+                    <option>Latest</option>
+                    <option>Oldest</option>
+                    <option>Most Viewed</option>
+                </select>
+                <select class="px-4 py-2 border rounded-lg">
+                    <option>All Images</option>
+                    <option>My Images</option>
+                    <option>Shared</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Image Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <!-- Image  -->
+            {% for image in images %}
+            <div class="group relative">
+                <a href="/viewer" class="block aspect-square bg-white rounded-lg shadow-sm overflow-hidden">
+                    <img src="{{ image['path'] }}" alt="Gallery Image" class="w-full h-full object-cover group-hover:opacity-75 transition">
+                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
+                </a>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-center mt-8 gap-2">
+            <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">Previous</button>
+            <button class="px-4 py-2 bg-blue-500 text-white rounded-lg">1</button>
+            <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">2</button>
+            <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">3</button>
+            <button class="px-4 py-2 border rounded-lg hover:bg-gray-50">Next</button>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,31 +1,20 @@
-import json
-
 import requests
 import base64
-import httpx
+import ollama
 
 async def generate_caption_for_image(image_bytes: bytes) -> str:
-    """
-    Generate a caption for the given image bytes using the locally hosted Ollama endpoint.
-    """
-    url = "http://localhost:11434/api/generate"  # Adjust this endpoint as needed.
-    headers = {"Content-Type": "application/json"}
-
     # Convert the image bytes to Base64
     encoded_image = base64.b64encode(image_bytes).decode("utf-8")
 
-    payload = {
-        "model": "llava",
-        "prompt": "Describe the image",
-        "image": encoded_image,
-        "stream":False
-    }
+    full_response = ""
+
+    for response in ollama.generate(model="llava", prompt="Describe the image",images=[encoded_image], stream=True):
+        print(response["response"], end="", flush=True)
+        full_response += response["response"]
+
+    return full_response
 
 
-    response = requests.post(url, headers=headers, json=payload)
-    response.raise_for_status()
-    data = response.json()
-    return data.get("response", "No caption provided from Ollama.")
 
 def generate_response(query_text: str, image_ids: list) :
     """

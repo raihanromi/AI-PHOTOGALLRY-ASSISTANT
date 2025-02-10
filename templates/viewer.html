@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageChat Hub - Image Viewer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-white shadow-md p-4 mb-6">
+        <div class="container mx-auto">
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold text-blue-600 flex items-center gap-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    ImageChat Hub
+                </div>
+                <div class="flex gap-6">
+                    <a href="index.html" class="hover:text-blue-600">Home</a>
+                    <a href="gallery.html" class="hover:text-blue-600">Gallery</a>
+                    <a href="uploader.html" class="hover:text-blue-600">Batch Upload</a>
+                    <a href="viewer.html" class="hover:text-blue-600">Image Viewer</a>
+                    <a href="chat.html" class="hover:text-blue-600">Chat</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <img src="/api/placeholder/800/600" alt="Viewed Image" class="w-full rounded-lg mb-4">
+                <h2 class="text-xl font-bold mb-2">Sample Image Title</h2>
+                <p class="text-gray-600 mb-4">Upload Date: February 10, 2025</p>
+                <div class="flex gap-2">
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Download</button>
+                    <button class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">Share</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
