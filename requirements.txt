@@ -9,3 +9,6 @@ jinja2
 requests
 httpx
 ollama
+open_clip_torch
+torch
+numpy

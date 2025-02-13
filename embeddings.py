@@ -18,3 +18,4 @@ def get_image_embedding(image: Image.Image):
     """
     embedding = model.encode(image)
     return embedding.tolist()
+

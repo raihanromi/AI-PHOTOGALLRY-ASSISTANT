@@ -1,31 +1,84 @@
 import chromadb
+from chromadb.utils.embedding_functions import OpenCLIPEmbeddingFunction
+from chromadb.utils.data_loaders import ImageLoader
+from PIL import Image
+import numpy as np
+import io
 
-# Global client and collection
-client = None
+db = None
 collection = None
 
+
 def init_db():
-    global client, collection
-    client = chromadb.Client()  # Uses default configuration; adjust if needed.
-    # Get or create a collection named "images"
-    collection = client.get_or_create_collection("images")
-
-def add_image_embedding(image_id: str, embedding: list):
+    global db
     global collection
-    # For demonstration, we add a document with a dummy text (can be extended with metadata)
-    collection.add(
-        documents=["placeholder"],  # You could store image metadata or description here.
-        embeddings=[embedding],
-        ids=[image_id]
+
+    print("Initializing database...")  # Debugging line
+
+    try:
+        embedding_function = OpenCLIPEmbeddingFunction()
+        image_loader = ImageLoader()
+
+        db = chromadb.PersistentClient(path="vector_db")
+        collection = db.get_or_create_collection("vector_collection", embedding_function=embedding_function,
+                                                 data_loader=image_loader)
+
+        if collection:
+            print("Database collection initialized successfully.")
+        else:
+            print("Failed to initialize the database collection.")
+    except Exception as e:
+        print(f"Error during database initialization: {e}")
+
+
+def add_db(image_id, image_path, caption=None):
+    global collection
+    global db
+
+    try:
+        collection.add(
+            ids=[image_id],
+            uris=[image_path],
+            metadatas=[{"caption": caption}]
+        )
+        print(f"Added image {image_id} to the collection.")
+        return "Success"
+    except Exception as e:
+        print(f"Error adding to DB: {e}")
+        return "Failure"
+
+
+
+def get_all_images():
+    global collection
+    query_result = collection.query(
+        query_texts=[""],
+        include=["uris", "metadatas"]
     )
 
-def query_images(query_embedding: list, n_results: int = 5):
+    return query_result
+
+
+def query_images_based_on_text(query_text):
     global collection
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=n_results
-    )
-    # Expecting results in the form {"ids": [[...]], "distances": [[...]]}
-    if results and "ids" in results and results["ids"]:
-        return results["ids"][0]  # Return the list of image IDs
-    return []
+
+    query_result = collection.query(
+        query_texts=[query_text],
+        n_results=1,
+        include=["uris", "metadatas"])
+
+    return query_result
+
+def query_images_based_on_image(image):
+    global collection
+
+    pil_image = Image.open(io.BytesIO(image))
+    np_image = np.array(pil_image)
+
+    query_result = collection.query(
+        query_images=[np_image],
+        n_results=1,
+        include=["uris", "metadatas"])
+
+    return query_result
+
