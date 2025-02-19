@@ -31,7 +31,7 @@ def init_db():
         print(f"Error during database initialization: {e}")
 
 
-def add_db(image_id, image_path, caption=None):
+def add_images(image_id, image_path, caption=None):
     global collection
     global db
 
@@ -51,25 +51,31 @@ def add_db(image_id, image_path, caption=None):
 
 def get_all_images():
     global collection
-    query_result = collection.query(
-        query_texts=[""],
+    query_result = collection.get(
         include=["uris", "metadatas"]
     )
 
     return query_result
 
+def get_image_by_id(image_id):
+    query_result = collection.get(
+        ids = [image_id],
+        include=["uris", "metadatas"]
+    )
+    return query_result
 
-def query_images_based_on_text(query_text):
+def query_images_based_on_text(query_text, n_result=10):
     global collection
 
     query_result = collection.query(
         query_texts=[query_text],
-        n_results=1,
-        include=["uris", "metadatas"])
+        n_results=n_result,
+        include=["uris", "metadatas", "distances"]  # Include distances (confidence scores)
+    )
 
     return query_result
 
-def query_images_based_on_image(image):
+def query_images_based_on_image(image, n_results=10):
     global collection
 
     pil_image = Image.open(io.BytesIO(image))
@@ -77,8 +83,9 @@ def query_images_based_on_image(image):
 
     query_result = collection.query(
         query_images=[np_image],
-        n_results=1,
-        include=["uris", "metadatas"])
+        n_results=n_results,
+        include=["uris", "metadatas", "distances"]  # Include distances (confidence scores)
+    )
 
     return query_result
 

@@ -30,24 +30,19 @@ You should always output your results in this list format, for example:
 
 def generate_image_caption(image):
     image_base64 = base64.b64encode(image).decode("utf-8")
-    full_response = ""
-    for response in ollama.generate(model="llava", prompt="Describe this image", images=[image_base64], stream=True):
-        print(response["response"], end="", flush=True)
-        full_response += response["response"]
+    response = ollama.generate(model="llava", prompt="Image description:", images=[image_base64], stream=False)
+    full_response = response["response"]
     return full_response
 
 def generate_object_details(image):
     image_base64 = base64.b64encode(image).decode("utf-8")
     prompt = get_object_system_message()
-    full_response = ""
-    for response in ollama.generate(model="llava", prompt=prompt, images=[image_base64], stream=True):
-        print(response["response"], end="", flush=True)
-        full_response += response["response"]
+    response = ollama.generate(model="llava", prompt=prompt, images=[image_base64], stream=False)
+    full_response = response["response"]
+
     return full_response
 
 def generate_summary_prompt(merged_prompt):
-    full_response = ""
-    for response in ollama.generate(model="llava", prompt="Summarized the prompt so that i can search the image in the vector database : "+merged_prompt,  stream=True):
-        print(response["response"], end="", flush=True)
-        full_response += response["response"]
-    return full_response
+    refined_prompt = f"Refine this query to be more suitable for searching in the vector database: {merged_prompt}."
+    response = ollama.generate(model="llava", prompt=refined_prompt, stream=False)
+    return response["response"]

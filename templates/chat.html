@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ImageChat Hub - Upload</title>
+    <title>ImageChat Hub - Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -18,32 +18,78 @@
                 Image
             </div>
             <div class="flex gap-6">
-                <a href="/" class="text-blue-600 font-medium">Home</a>
-                <a href="/gallery" class="text-gray-600 hover:text-blue-600">Gallery</a>
-                <a href="/upload" class="text-gray-600 hover:text-blue-600">Upload</a>
-                <a href="/chat" class="text-gray-600 hover:text-blue-600">Chat</a>
+                <a href="/"
+                   class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/' %}text-blue-600 font-medium{% endif %}">
+                    Home
+                </a>
+                <a href="/gallery"
+                   class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/gallery' %}text-blue-600 font-medium{% endif %}">
+                    Gallery
+                </a>
+                <a href="/upload"
+                   class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/upload' %}text-blue-600 font-medium{% endif %}">
+                    Upload
+                </a>
+                <a href="/chat"
+                   class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/chat' %}text-blue-600 font-medium{% endif %}">
+                    Chat
+                </a>
             </div>
         </div>
     </nav>
 
-    <div class="container mx-auto px-4 py-8">
-        <!-- Image Display Section -->
-        {% if images %}
-        <div class="mb-8 max-w-4xl mx-auto space-y-4">
-            {% for image in images %}
-            <div class="flex justify-end">
-                <div class="bg-blue-600 rounded-lg p-2 max-w-md">
-                    <img src="{{ image['image_path'] }}" alt="Generated Image" class="rounded-lg w-full">
-                    <div class="mt-2 text-right">
-                        <span class="text-xs text-white opacity-75">{{ image['caption'] }}</span>
+    <div class="container mx-auto px-4 py-8 mb-24">
+        <!-- Chat History Section -->
+        <div id="chat-container" class="max-w-4xl mx-auto space-y-6">
+            {% for entry in chat_history %}
+                <!-- User Query (Left Side) -->
+                {% if entry.prompt %}
+                <div class="flex justify-start">
+                    <div class="bg-blue-600 text-white rounded-lg p-3 max-w-md shadow-sm">
+                        <p>{{ entry.prompt }}</p>
                     </div>
                 </div>
-            </div>
+                {% endif %}
+
+                <!-- Image Query (Left Side) -->
+                {% if entry.image_query %}
+                <div class="flex justify-start">
+                    <div class="bg-blue-600 rounded-lg p-3 max-w-md shadow-sm">
+                        <p class="text-white font-semibold">Image Query:</p>
+                        <img src="{{ entry.image_query }}" alt="Query Image" class="rounded-lg w-full mt-2">
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Response (Right Side) -->
+                {% if entry.images or entry.combined_summary %}
+                <div class="flex justify-end">
+                    <div class="space-y-4">
+                        <!-- Images -->
+                        {% if entry.images %}
+                        <div class="flex flex-wrap gap-2">
+                            {% for image in entry.images %}
+                            <div class="bg-white rounded-lg p-2 shadow-sm">
+                                <img src="/{{ image['uri'] }}" alt="Generated Image" class="rounded-lg w-48 h-48 object-cover">
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Combined Summary -->
+                        {% if entry.combined_summary %}
+                        <div class="bg-gray-200 rounded-lg p-3 max-w-md shadow-sm">
+                            <p class="text-gray-800 font-semibold">Summary:</p>
+                            <p class="text-gray-600">{{ entry.combined_summary }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
             {% endfor %}
         </div>
-        {% endif %}
 
-        <!-- Unified Input Section -->
+        <!-- Input Section -->
         <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4">
             <div class="max-w-4xl mx-auto">
                 <form action="/generate" method="POST" enctype="multipart/form-data" id="upload-form" class="flex gap-4 items-end">
@@ -77,16 +123,64 @@
         textarea.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
+            checkFormValidity();
         });
 
-        // Display file name when selected
-        document.getElementById('image-upload').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                document.getElementById('file-info').textContent = `Selected file: ${fileName}`;
+        // Display file name and preview when an image is selected
+        const imageUpload = document.getElementById('image-upload');
+        const fileInfo = document.getElementById('file-info');
+        const sendButton = document.querySelector('button[type="submit"]');
+
+        imageUpload.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                fileInfo.textContent = `Selected file: ${file.name}`;
                 textarea.placeholder = "Add a message with your image (optional)...";
+
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const previewImg = document.getElementById('image-preview');
+                    if (!previewImg) {
+                        const imgElement = document.createElement('img');
+                        imgElement.id = 'image-preview';
+                        imgElement.classList.add('mt-2', 'rounded-lg', 'shadow-sm', 'max-h-32');
+                        fileInfo.appendChild(imgElement);
+                    }
+                    document.getElementById('image-preview').src = event.target.result;
+                };
+                reader.readAsDataURL(file);
             }
+            checkFormValidity();
         });
+
+        // Auto-scroll when new content is added
+        function scrollToBottom() {
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
+        }
+
+        // Check if the form has either text input or an image before enabling "Send" button
+        function checkFormValidity() {
+            const hasText = textarea.value.trim().length > 0;
+            const hasImage = imageUpload.files.length > 0;
+            sendButton.disabled = !(hasText || hasImage);
+        }
+
+        // Initial check on page load
+        checkFormValidity();
+
+        // Function to clear UI and reset session
+        function clearChatSession() {
+            document.getElementById('chat-container').innerHTML = ""; // Remove previous chat history
+            document.getElementById('file-info').textContent = "";
+        }
+
+        // Detect if session has restarted (new visit)
+        if (!document.cookie.includes("chat_session")) {
+            clearChatSession();
+        }
     </script>
 </body>
 </html>

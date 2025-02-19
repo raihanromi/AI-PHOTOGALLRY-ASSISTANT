@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Gallery</title>
+    <title>ImageChat Hub - Gallery</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -15,44 +15,42 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Image
+                ImageChat Hub
             </div>
             <div class="flex gap-6">
                 <a href="/" class="text-blue-600 font-medium">Home</a>
                 <a href="/gallery" class="text-gray-600 hover:text-blue-600">Gallery</a>
-                <a href="/upload" class="text-gray-600 hover:text-blue-600">Upload</a>
                 <a href="/chat" class="text-gray-600 hover:text-blue-600">Chat</a>
             </div>
         </div>
     </nav>
 
+    <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold">Image Gallery</h1>
-
+            <h2 class="text-2xl font-bold">Image Gallery</h2>
         </div>
 
-        {% if message %}
-            <div class="text-center py-8">
-                <p class="text-gray-500 text-lg">{{ message }}</p>
-            </div>
-        {% else %}
-            <!-- Image Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {% for image in images %}
-                    <div class="group relative bg-white rounded-lg shadow-sm overflow-hidden">
-                        <a href="/viewer" class="block aspect-square">
-                            <img src="{{ image.uri }}" 
-                                 alt="{{ image.caption }}" 
-                                 class="w-full h-full object-cover group-hover:opacity-75 transition duration-300"
+        <!-- Image Grid - Increased columns for different screen sizes -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {% for image in images %}
+                <div class="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    <a href="/gallery/{{image.image_id}}" class="block">
+                        <div class="aspect-square relative">
+                            <img src="{{ image.uri }}"
+                                 alt="{{ image.caption }}"
+                                 class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition duration-300"
                                  loading="lazy">
-                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300"></div>
-                        </a>
-                        <div class="p-2">
-                            <p class="text-sm text-gray-600 truncate">{{ image.caption }}</p>
+                            <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-all duration-300"></div>
                         </div>
-                    </div>
-                {% endfor %}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if images|length == 0 %}
+            <div class="text-center py-8">
+                <p class="text-gray-500 text-lg">No images found</p>
             </div>
         {% endif %}
     </div>
