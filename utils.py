@@ -58,5 +58,3 @@ def calculate_dynamic_threshold(distances):
     dynamic_threshold = mean_distance - std_dev
 
     return max(dynamic_threshold, 0)  # Ensure threshold is not negative
-
-

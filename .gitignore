@@ -5,3 +5,4 @@ test_main.http
 __pycache__/
 .idea/
 /vector_db/*
+.env

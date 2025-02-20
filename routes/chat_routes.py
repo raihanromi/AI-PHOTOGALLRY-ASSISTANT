@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from controllers import chat_controller
 import uuid
+
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
@@ -23,9 +24,8 @@ async def chat(request: Request):
 @router.post("/generate")
 async def generate_text(request: Request, prompt: str = Form(None), image: UploadFile = File(None)):
     session_id = request.cookies.get("chat_session", str(uuid.uuid4()))
-    chat_history = chat_controller.generate_text(session_id, prompt, image)
-    print(chat_history)
-    response = templates.TemplateResponse("chat.html", {"request": request, "chat_history": chat_history})
+    chat_response = chat_controller.chatbot(session_id, prompt, image)
+    print("chat response: ",chat_response)
+    response = templates.TemplateResponse("chat.html", {"request": request, "chat_history": chat_response})
     response.set_cookie(key="chat_session", value=session_id)
     return response
-

@@ -1,5 +1,5 @@
 from db import add_images, get_all_images, get_image_by_id, query_images_based_on_text, query_images_based_on_image
-from llm import generate_image_caption
+from llm import generate_image_caption, generate_image_tags
 from utils import filter_query_response
 import os
 import glob
@@ -17,10 +17,12 @@ def upload_file(files):
             f.write(contents)
 
         caption = generate_image_caption(contents)
+        tags = generate_image_tags(contents)
         image_id = file.filename
         image_path = IMAGEDIR + file.filename
-        result = add_images(image_id, image_path, caption)
-    return "Success"
+        result = add_images(image_id, image_path, caption,tags)
+
+    return { "status": result}
 
 def get_gallery_images():
     query_result = get_all_images()
@@ -48,7 +50,7 @@ def get_image_details(image_id):
     metadatas = query_result["metadatas"][0]
     caption = metadatas.get("caption", "No caption available")
     image = {"uri": uri, "caption": caption, "tags": metadatas.get("tags", [])}
-
+    print(image['tags'])
     return image
 
 def clear_query_images():

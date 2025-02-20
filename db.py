@@ -13,7 +13,7 @@ def init_db():
     global db
     global collection
 
-    print("Initializing database...")  # Debugging line
+    print("Initializing database...")
 
     try:
         embedding_function = OpenCLIPEmbeddingFunction()
@@ -31,7 +31,7 @@ def init_db():
         print(f"Error during database initialization: {e}")
 
 
-def add_images(image_id, image_path, caption=None):
+def add_images(image_id, image_path, caption=None,tags=None):
     global collection
     global db
 
@@ -39,9 +39,9 @@ def add_images(image_id, image_path, caption=None):
         collection.add(
             ids=[image_id],
             uris=[image_path],
-            metadatas=[{"caption": caption}]
+            metadatas=[{"caption": caption, "tags": tags}]
         )
-        print(f"Added image {image_id} to the collection.")
+        #print(f"Added image {image_id} to the collection.")
         return "Success"
     except Exception as e:
         print(f"Error adding to DB: {e}")
@@ -70,7 +70,7 @@ def query_images_based_on_text(query_text, n_result=10):
     query_result = collection.query(
         query_texts=[query_text],
         n_results=n_result,
-        include=["uris", "metadatas", "distances"]  # Include distances (confidence scores)
+        include=["uris", "metadatas", "distances"]
     )
 
     return query_result
@@ -84,7 +84,7 @@ def query_images_based_on_image(image, n_results=10):
     query_result = collection.query(
         query_images=[np_image],
         n_results=n_results,
-        include=["uris", "metadatas", "distances"]  # Include distances (confidence scores)
+        include=["uris", "metadatas", "distances"]
     )
 
     return query_result

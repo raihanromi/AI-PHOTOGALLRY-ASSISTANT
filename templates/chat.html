@@ -15,7 +15,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Image
+                ImageChat Hub
             </div>
             <div class="flex gap-6">
                 <a href="/"
@@ -38,22 +38,22 @@
         </div>
     </nav>
 
+    <!-- Chat History Section -->
     <div class="container mx-auto px-4 py-8 mb-24">
-        <!-- Chat History Section -->
         <div id="chat-container" class="max-w-4xl mx-auto space-y-6">
             {% for entry in chat_history %}
-                <!-- User Query (Left Side) -->
+                <!-- User Query (Right Side) -->
                 {% if entry.prompt %}
-                <div class="flex justify-start">
+                <div class="flex justify-end">
                     <div class="bg-blue-600 text-white rounded-lg p-3 max-w-md shadow-sm">
                         <p>{{ entry.prompt }}</p>
                     </div>
                 </div>
                 {% endif %}
 
-                <!-- Image Query (Left Side) -->
+                <!-- Image Query (Right Side) -->
                 {% if entry.image_query %}
-                <div class="flex justify-start">
+                <div class="flex justify-end">
                     <div class="bg-blue-600 rounded-lg p-3 max-w-md shadow-sm">
                         <p class="text-white font-semibold">Image Query:</p>
                         <img src="{{ entry.image_query }}" alt="Query Image" class="rounded-lg w-full mt-2">
@@ -61,16 +61,22 @@
                 </div>
                 {% endif %}
 
-                <!-- Response (Right Side) -->
-                {% if entry.images or entry.combined_summary %}
-                <div class="flex justify-end">
+                <!-- Response (Left Side) -->
+                <div class="flex justify-start">
                     <div class="space-y-4">
-                        <!-- Images -->
+                        <!-- Chat Response -->
+                        {% if entry.type == "chat" %}
+                        <div class="bg-gray-200 rounded-lg p-3 max-w-md shadow-sm">
+                            <p class="text-gray-800">{{ entry.content }}</p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Image Search Results -->
                         {% if entry.images %}
                         <div class="flex flex-wrap gap-2">
                             {% for image in entry.images %}
                             <div class="bg-white rounded-lg p-2 shadow-sm">
-                                <img src="/{{ image['uri'] }}" alt="Generated Image" class="rounded-lg w-48 h-48 object-cover">
+                                <img src="/{{ image['uri'] }}" alt="Generated Image" class="rounded-lg w-48 h-48 object-cover cursor-pointer" onclick="openModal(this.src)">
                             </div>
                             {% endfor %}
                         </div>
@@ -85,36 +91,55 @@
                         {% endif %}
                     </div>
                 </div>
-                {% endif %}
             {% endfor %}
         </div>
+    </div>
 
-        <!-- Input Section -->
-        <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4">
-            <div class="max-w-4xl mx-auto">
-                <form action="/generate" method="POST" enctype="multipart/form-data" id="upload-form" class="flex gap-4 items-end">
-                    <div class="flex-grow relative">
-                        <textarea
-                            id="unified-input"
-                            name="prompt"
-                            rows="1"
-                            class="w-full p-3 pr-12 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            placeholder="Type a message or click the image icon to upload..."
-                        ></textarea>
-                        <label for="image-upload" class="absolute right-3 bottom-3 cursor-pointer">
-                            <svg class="w-6 h-6 text-gray-400 hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <input id="image-upload" name="image" type="file" class="hidden" accept="image/*">
-                        </label>
-                    </div>
-                    <button type="submit" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Send
-                    </button>
-                </form>
-                <div id="file-info" class="text-sm text-gray-500 mt-2"></div>
-            </div>
+    <!-- Input Section -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-4">
+        <div class="max-w-4xl mx-auto">
+            <form action="/generate" method="POST" enctype="multipart/form-data" id="upload-form" class="flex gap-4 items-end">
+                <div class="flex-grow relative">
+                    <textarea
+                        id="unified-input"
+                        name="prompt"
+                        rows="1"
+                        class="w-full p-3 pr-12 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        placeholder="Type a message or click the image icon to upload..."
+                    ></textarea>
+                    <label for="image-upload" class="absolute right-3 bottom-3 cursor-pointer">
+                        <svg class="w-6 h-6 text-gray-400 hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <input id="image-upload" name="image" type="file" class="hidden" accept="image/*">
+                    </label>
+                </div>
+                <button type="submit" id="send-button" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 flex items-center gap-2">
+                    <span id="send-text">Send</span>
+                    <span id="loading-spinner" class="hidden">
+                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                    </span>
+                </button>
+            </form>
+            <div id="file-info" class="text-sm text-gray-500 mt-2"></div>
         </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="image-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg p-4 max-w-3xl">
+            <img id="modal-image" src="" alt="Preview" class="rounded-lg w-full">
+            <button id="close-modal" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="hidden fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg">
+        <p>An error occurred. Please try again.</p>
     </div>
 
     <script>
@@ -129,12 +154,14 @@
         // Display file name and preview when an image is selected
         const imageUpload = document.getElementById('image-upload');
         const fileInfo = document.getElementById('file-info');
-        const sendButton = document.querySelector('button[type="submit"]');
+        const sendButton = document.getElementById('send-button');
+        const sendText = document.getElementById('send-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
 
         imageUpload.addEventListener('change', function (e) {
             const file = e.target.files[0];
             if (file) {
-                fileInfo.textContent = `Selected file: ${file.name}`;
+                fileInfo.textContent = Selected file: ${file.name};
                 textarea.placeholder = "Add a message with your image (optional)...";
 
                 // Show image preview
@@ -156,9 +183,8 @@
 
         // Auto-scroll when new content is added
         function scrollToBottom() {
-            setTimeout(() => {
-                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-            }, 100);
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
         // Check if the form has either text input or an image before enabling "Send" button
@@ -181,6 +207,65 @@
         if (!document.cookie.includes("chat_session")) {
             clearChatSession();
         }
+
+        // Image Preview Modal
+        const imageModal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+        const closeModal = document.getElementById('close-modal');
+
+        function openModal(src) {
+            modalImage.src = src;
+            imageModal.classList.remove('hidden');
+        }
+
+        closeModal.addEventListener('click', function () {
+            imageModal.classList.add('hidden');
+        });
+
+        // Error Handling
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            setTimeout(() => {
+                errorMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Form Submission
+        const form = document.getElementById('upload-form');
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            try {
+                sendButton.disabled = true;
+                sendText.textContent = "Sending...";
+                loadingSpinner.classList.remove('hidden');
+
+                const formData = new FormData(form);
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    body: formData,
+                });
+                if (!response.ok) {
+                    throw new Error('Request failed');
+                }
+
+                // Clear inputs and reset button
+                textarea.value = "";
+                imageUpload.value = "";
+                fileInfo.textContent = "";
+                document.getElementById('image-preview')?.remove();
+
+                // Reload the page to show updated chat history
+                window.location.reload();
+            } catch (error) {
+                showError('An error occurred. Please try again.');
+            } finally {
+                sendButton.disabled = false;
+                sendText.textContent = "Send";
+                loadingSpinner.classList.add('hidden');
+            }
+        });
     </script>
 </body>
 </html>

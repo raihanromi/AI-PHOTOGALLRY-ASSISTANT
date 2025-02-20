@@ -12,3 +12,4 @@ ollama
 open_clip_torch
 torch
 numpy
+python-dotenv
