@@ -75,15 +75,15 @@ def get_gallery_images(page=1, per_page=10):
     """
     try:
         # Input validation
-        page = max(1, page)  # Ensure page is at least 1
-        per_page = max(1, min(per_page, 100))  # Limit between 1 and 100
+        page = max(1, page)  
+        per_page = max(1, min(per_page, 100))
 
         # Get all images from database
         all_images = get_all_images()
 
         # Calculate total pages
         total_images = len(all_images)
-        total_pages = -(-total_images // per_page)  # Ceiling division
+        total_pages = -(-total_images // per_page) 
 
         # Paginate the sorted images
         start_idx = (page - 1) * per_page

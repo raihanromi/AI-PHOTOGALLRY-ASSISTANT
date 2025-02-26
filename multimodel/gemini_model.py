@@ -41,7 +41,7 @@ def gemini_image_analysis(image_path):
 
 
 def gemini_image_description(image_path):
-    """Generates a short, search-friendly image caption using Gemini."""
+    """Generates a detailed, comprehensive image description using Gemini."""
     try:
         if not image_path:
             print("Error: No image data provided.")
@@ -49,27 +49,27 @@ def gemini_image_description(image_path):
 
         image = genai.upload_file(image_path)
 
-        # Optimized prompt for concise and relevant descriptions
+        # Optimized prompt for detailed and comprehensive descriptions
         prompt = (
-            "Generate a brief but descriptive summary of the main subject in this image. "
-            "Focus on concrete details such as object, action, and setting. "
-            "Ensure the response is 5 to 12 words long for effective vector search."
+            "Analyze the provided image and generate a detailed description of everything about the image. "
+            "Include information about objects, actions, settings, colors, emotions, and any other relevant details. "
+            "Ensure the response is thorough and covers all aspects of the image."
         )
         response = model.generate_content([prompt, image])
 
         # Extract and clean response
         raw_response = response.text.strip() if hasattr(response, 'text') else ""
-        print(f"Raw caption response for {image_path}: '{raw_response}'")
+        print(f"Raw description response for {image_path}: '{raw_response}'")
 
         # Validate and refine response
-        if raw_response and 5 <= len(raw_response.split()) <= 12:
+        if raw_response:
             return raw_response
         else:
-            print("Caption too vague or does not meet length criteria; using fallback.")
+            print("Description too vague or not generated; using fallback.")
             return "Generic object in an unknown setting."
 
     except Exception as e:
-        print(f"Error generating caption for {image_path}: {str(e)}")
+        print(f"Error generating description for {image_path}: {str(e)}")
         return "Unidentified object."
 
 
@@ -147,17 +147,18 @@ def gemini_combine_summary(captions_string):
 
 def verify_image_similarity(image_path, prompt):
     try:
+
+        image_description = gemini_image_description(image_path)
+
         verify_prompt = (
-            f"Analyze the main subject and overall context of this image. Does it align well with this description: '{prompt}'? "
-            f"Answer 'yes' if the image shares key characteristics, even if some minor details differ. "
-            f"Answer 'slightly' if there are partial similarities but notable differences. "
-            f"Answer 'no' if the image is unrelated."
+            f"if the {image_description} is similar to the {prompt} , return yes. Otherwise, return no. "
+
         )
         image_upload = genai.upload_file(image_path)
-        response = model.generate_content([image_upload, verify_prompt])
+        response = model.generate_content(verify_prompt)
         answer = response.text.strip().lower()
         print(f"Image {image_path}: Matches '{prompt}'? {answer}")
-        return answer == "yes"
+        return "yes" in answer
     except Exception as e:
         print(f"Error verifying image {image_path}: {str(e)}")
         return False

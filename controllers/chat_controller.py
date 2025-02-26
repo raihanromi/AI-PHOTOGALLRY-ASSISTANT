@@ -2,7 +2,7 @@ import uuid
 import base64
 from pathlib import Path
 from db import query_images_based_on_text, query_images_based_on_image
-from multimodel.gemini_model import gemini_chat_conversation, gemini_classify_intent, gemini_combine_summary , gemini_image_description
+from multimodel.gemini_model import gemini_chat_conversation, gemini_classify_intent, gemini_combine_summary , gemini_image_description ,verify_image_similarity
 from utils import filter_query_response
 
 UPLOAD_DIR = Path("static/uploads")
@@ -31,6 +31,7 @@ def generate_text(session_id, prompt, image):
         with open(file_path, "wb") as f:
             f.write(image_content)
 
+        # image + prompt
         if prompt:
             image_description = gemini_image_description(file_path)
             merged_prompt = image_description + " " + prompt
@@ -38,21 +39,32 @@ def generate_text(session_id, prompt, image):
             print(generalized_description)
             query_response = query_images_based_on_text(generalized_description, n_results=5)
             ranked_images = filter_query_response(query_response)
-            chat_entry["images"] = ranked_images
+            filtered_images = [img for img in ranked_images if verify_image_similarity(img["image_path"], prompt)]
+            chat_entry["images"] = filtered_images
 
+        # image only
         else:
+            prompt_image_description = gemini_image_description(file_path)
+            #print(prompt_image_description)
             query_response = query_images_based_on_image(image_content, n_results=5)
             ranked_images = filter_query_response(query_response)
-            chat_entry["images"] = ranked_images
+            filtered_images = [img for img in ranked_images if verify_image_similarity(img["image_path"], prompt_image_description)]
+            chat_entry["images"] = filtered_images
 
         chat_entry["image_query"] = f"/static/uploads/{file_name}"
-
+    
+    # text only
     elif prompt:
         query_response = query_images_based_on_text(prompt, n_results=10)
         ranked_images = filter_query_response(query_response)
-        print(ranked_images)
-        chat_entry["images"] = ranked_images
+        filtered_images = [img for img in ranked_images if verify_image_similarity(img["image_path"], prompt)]
+        #print(filtered_images)
+        chat_entry["images"] = filtered_images
 
+    if not chat_entry["images"]:
+        chat_entry["combined_summary"] = "No images found. Please clarify your query."
+
+    # Combine image captions into a summary
     if chat_entry["images"]:
         image_captions = [image_data["caption"] for image_data in chat_entry["images"]]
         captions_string = ", ".join(image_captions)
