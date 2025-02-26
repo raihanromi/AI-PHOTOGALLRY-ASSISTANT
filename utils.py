@@ -1,10 +1,17 @@
+from PIL import Image
+from io import BytesIO
+from multimodel.gemini_model import gemini_image_description,verify_image_similarity
+
 def filter_query_response(query_response):
 
     image_path = query_response['uris'][0]
     metadatas = query_response['metadatas'][0]
+    image_ids = query_response['ids'][0]
+
     images = []
     for _ in range(len(image_path)):
         images.append({
+            "image_id": image_ids[_],
             "image_path": image_path[_],
             "caption": metadatas[_]['caption']
         })
@@ -12,49 +19,49 @@ def filter_query_response(query_response):
     return images
 
 
-def dynamic_ranking(query_result, confidence_threshold=1.5):
-    # Extract the distances (confidence scores) from the query result
-    distances = query_result.get("distances", [])
+def enforce_size_limit(image_bytes, max_size_kb=100):
+    """Ensure the image is under the specified size (default: 100KB), otherwise resize/compress it."""
+    max_size_bytes = max_size_kb * 1024
 
-    # Extract the URIs and metadata
+    if len(image_bytes) <= max_size_bytes:
+        return image_bytes
 
-    uris = query_result['uris'][0]
-    metadatas = query_result['metadatas'][0]
+    try:
+        image = Image.open(BytesIO(image_bytes))
+        quality = 90
 
-    # Ensure distances, uris, and metadatas are lists of lists
-    if not distances or not uris or not metadatas:
-        return []
+        while len(image_bytes) > max_size_bytes and quality > 10:
+            output = BytesIO()
+            image.save(output, format="JPEG", quality=quality)
+            image_bytes = output.getvalue()
+            quality -= 10  # Reduce quality gradually
 
-    # Flatten the lists (assuming they are lists of lists)
-    distances = distances[0] if isinstance(distances[0], list) else distances
-    uris = uris[0] if isinstance(uris[0], list) else uris
-    metadatas = metadatas[0] if isinstance(metadatas[0], list) else metadatas
+        # If still too large, resize the image dimensions iteratively
+        while len(image_bytes) > max_size_bytes:
+            width, height = image.size
+            new_width = int(width * 0.9)  # Reduce width by 10%
+            new_height = int(height * 0.9)  # Reduce height by 10%
+            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
-    # Filter images based on the confidence threshold
-    filtered_images = []
-    for i, distance in enumerate(distances):
-        if distance <= confidence_threshold:  # Lower distance means better match
-            filtered_images.append({
-                "uri": uris[i],
-                "metadata": metadatas[i],
-                "distance": distance  # Include distance for debugging
-            })
+            output = BytesIO()
+            image.save(output, format="JPEG", quality=quality)
+            image_bytes = output.getvalue()
 
-    # Sort filtered images by distance (ascending order)
-    filtered_images.sort(key=lambda x: x["distance"])
+            # Stop if the image becomes too small (e.g., below 100x100 pixels)
+            if new_width < 100 or new_height < 100:
+                raise ValueError("Image is too large and cannot be compressed below the size limit without significant quality loss.")
 
-    return filtered_images
+        return image_bytes
+    except Exception as e:
+        raise ValueError(f"Failed to compress image: {str(e)}")
 
 
-def calculate_dynamic_threshold(distances):
-    if not distances:
-        return 1.5  # Default threshold if no distances are available
-
-    # Calculate mean and standard deviation of distances
-    mean_distance = sum(distances) / len(distances)
-    std_dev = (sum((d - mean_distance) ** 2 for d in distances) / len(distances)) ** 0.5
-
-    # Set threshold as mean minus one standard deviation
-    dynamic_threshold = mean_distance - std_dev
-
-    return max(dynamic_threshold, 0)  # Ensure threshold is not negative
+def convert_to_jpg(image_bytes):
+    """Convert the image to JPEG format."""
+    try:
+        image = Image.open(BytesIO(image_bytes))
+        output = BytesIO()
+        image.convert("RGB").save(output, format="JPEG", quality=85)
+        return output.getvalue()
+    except Exception as e:
+        raise ValueError(f"Failed to convert image to JPEG: {str(e)}")

@@ -25,7 +25,7 @@ async def chat(request: Request):
 async def generate_text(request: Request, prompt: str = Form(None), image: UploadFile = File(None)):
     session_id = request.cookies.get("chat_session", str(uuid.uuid4()))
     chat_response = chat_controller.chatbot(session_id, prompt, image)
-    print("chat response: ",chat_response)
+    #print("chat response: ",chat_response)
     response = templates.TemplateResponse("chat.html", {"request": request, "chat_history": chat_response})
     response.set_cookie(key="chat_session", value=session_id)
     return response

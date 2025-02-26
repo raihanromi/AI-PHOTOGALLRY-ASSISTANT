@@ -1,10 +1,9 @@
 import uuid
 import base64
 from pathlib import Path
-from fastapi import HTTPException
 from db import query_images_based_on_text, query_images_based_on_image
-from utils import filter_query_response, dynamic_ranking, calculate_dynamic_threshold
-from llm import ollama, generate_image_caption, generate_summary_prompt
+from multimodel.gemini_model import gemini_chat_conversation, gemini_classify_intent, gemini_combine_summary , gemini_image_description
+from utils import filter_query_response
 
 UPLOAD_DIR = Path("static/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -17,17 +16,6 @@ def get_or_create_session(session_id: str):
         chat_sessions[session_id] = []
     return chat_sessions[session_id]
 
-
-def is_image_request(input_text: str) -> bool:
-    keywords = ["image", "show me", "picture", "photo", "visualize", "find me", "look for", "search for"]
-    return any(keyword in input_text.lower() for keyword in keywords)
-
-
-def classify_intent(prompt: str) -> str:
-    if is_image_request(prompt):
-        return "image_search"
-    else:
-        return "chat"
 
 
 def generate_text(session_id, prompt, image):
@@ -44,32 +32,31 @@ def generate_text(session_id, prompt, image):
             f.write(image_content)
 
         if prompt:
-            image_description = generate_image_caption(image_content)
-            generalized_description = generate_summary_prompt(image_description + " " + prompt)
-            query_response = query_images_based_on_text(generalized_description, n_result=10)
-            distances = query_response.get("distances", [])
-            dynamic_threshold = calculate_dynamic_threshold(
-                distances[0] if isinstance(distances[0], list) else distances)
-            filtered_images = dynamic_ranking(query_response, confidence_threshold=dynamic_threshold)
-            chat_entry["images"] = filtered_images
+            image_description = gemini_image_description(file_path)
+            merged_prompt = image_description + " " + prompt
+            generalized_description = gemini_combine_summary(merged_prompt)
+            print(generalized_description)
+            query_response = query_images_based_on_text(generalized_description, n_results=5)
+            ranked_images = filter_query_response(query_response)
+            chat_entry["images"] = ranked_images
+
+        else:
+            query_response = query_images_based_on_image(image_content, n_results=5)
+            ranked_images = filter_query_response(query_response)
+            chat_entry["images"] = ranked_images
 
         chat_entry["image_query"] = f"/static/uploads/{file_name}"
 
     elif prompt:
-        query_response = query_images_based_on_text(prompt, n_result=10)
-        distances = query_response.get("distances", [])
-        dynamic_threshold = calculate_dynamic_threshold(distances[0] if isinstance(distances[0], list) else distances)
-        ranked_images = dynamic_ranking(query_response, confidence_threshold=dynamic_threshold)
+        query_response = query_images_based_on_text(prompt, n_results=10)
+        ranked_images = filter_query_response(query_response)
+        print(ranked_images)
         chat_entry["images"] = ranked_images
 
     if chat_entry["images"]:
-        image_captions = [image_data['metadata']["caption"] for image_data in chat_entry["images"]]
+        image_captions = [image_data["caption"] for image_data in chat_entry["images"]]
         captions_string = ", ".join(image_captions)
-        combined_summary = ""
-        for response in ollama.generate(model="llava",
-                                        prompt=f"Summarize the following captions into one clear and concise description: {captions_string}.",
-                                        stream=True):
-            combined_summary += response["response"]
+        combined_summary = gemini_combine_summary(captions_string)
         chat_entry["combined_summary"] = combined_summary if combined_summary else "No summary available."
 
     chat_history.append(chat_entry)
@@ -77,22 +64,18 @@ def generate_text(session_id, prompt, image):
 
 
 def chatbot(session_id: str, prompt: str, image=None):
-
-    intent = classify_intent(prompt)
+    intent = gemini_classify_intent(prompt)
     chat_history = get_or_create_session(session_id)
 
-    if intent == "image_search":
-        chat_response = generate_text(session_id, prompt, image)
+    if intent == "image_search" or (image and image.size):
+        generate_text(session_id, prompt, image)
     else:
-        conversation_prompt = f"You are a helpful assistant. Engage in a conversation: {prompt}"
-        combined_response = ""
-        for response in ollama.generate(model="llava", prompt=conversation_prompt, stream=True):
-            combined_response += response["response"]
-        chat_response = [{"type": "chat", "content": combined_response}]
-
-
-        chat_entry = {"prompt": prompt, "images": [], "image_query": None, "combined_summary": combined_response}
-
+        previous_context = "\n".join(
+            [f"User: {entry['prompt']}\nBot: {entry['combined_summary']}" for entry in chat_history if
+             entry['combined_summary']])
+        conversation_prompt = f"You are a helpful assistant. Engage in a conversation with context:\n{previous_context}\nUser: {prompt}" if previous_context else f"You are a helpful assistant. Engage in a conversation: {prompt}"
+        response = gemini_chat_conversation(conversation_prompt)
+        chat_entry = {"prompt": prompt, "images": [], "image_query": None, "combined_summary": response}
         chat_history.append(chat_entry)
 
     return chat_history

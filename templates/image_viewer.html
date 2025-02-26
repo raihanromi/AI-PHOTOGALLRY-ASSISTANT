@@ -6,44 +6,42 @@
     <title>Image Detail</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen">
-
-     <!-- Navigation -->
-<nav class="bg-white shadow-md p-4">
-    <div class="container mx-auto flex justify-between items-center">
-        <div class="text-2xl font-bold text-blue-600 flex items-center gap-2">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Image
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg p-4 backdrop-blur-md bg-white/90 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-indigo-600 flex items-center gap-2 hover:text-indigo-700 transition">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                AI Gallery Assistant
+            </div>
+            <div class="flex gap-8">
+                <a href="/"
+                   class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/' %}text-indigo-600 font-medium{% endif %}">
+                    Home
+                </a>
+                <a href="/gallery"
+                   class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/gallery' %}text-indigo-600 font-medium{% endif %}">
+                    Gallery
+                </a>
+                <a href="/upload"
+                   class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/upload' %}text-indigo-600 font-medium{% endif %}">
+                    Upload
+                </a>
+                <a href="/chat"
+                   class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/chat' %}text-indigo-600 font-medium{% endif %}">
+                    Chat
+                </a>
+            </div>
         </div>
-        <div class="flex gap-6">
-            <a href="/"
-               class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/' %}text-blue-600 font-medium{% endif %}">
-                Home
-            </a>
-            <a href="/gallery"
-               class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/gallery' %}text-blue-600 font-medium{% endif %}">
-                Gallery
-            </a>
-            <a href="/upload"
-               class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/upload' %}text-blue-600 font-medium{% endif %}">
-                Upload
-            </a>
-            <a href="/chat"
-               class="text-gray-600 hover:text-blue-600 {% if request.url.path == '/chat' %}text-blue-600 font-medium{% endif %}">
-                Chat
-            </a>
-        </div>
-    </div>
-</nav>
-
+    </nav>
 
     <div class="container mx-auto px-4 py-8">
         <!-- Back Button -->
-        <a href="/gallery" class="inline-flex items-center text-blue-600 hover:text-blue-800 mb-6">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/gallery" class="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-6 group transition">
+            <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
             Back to Gallery
@@ -55,46 +53,77 @@
             </div>
         {% else %}
             <!-- Main Content Section -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8 border border-gray-100">
                 <div class="flex flex-col lg:flex-row">
-                    <!-- Image Section - Larger -->
-                    <div class="lg:w-2/3">
+                    <!-- Image Section -->
+                    <div class="lg:w-2/3 bg-gray-50">
                         <img src="/{{ image.uri }}"
                              alt="image"
-                             class="w-full h-[600px] object-contain bg-gray-50">
+                             class="w-full h-[600px] object-contain p-4">
                     </div>
 
                     <!-- Description and Tags Section -->
-                    <div class="lg:w-1/3 p-6">
-                        <div class="prose max-w-none">
-                            <p class="text-gray-700 text-lg mb-4">{{ image.caption }}</p>
+<div class="lg:w-1/3 p-8 space-y-6">
+    <!-- Description Section -->
+    <div class="space-y-4">
+        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+            </svg>
+            Description
+        </h2>
+        <p class="text-gray-700 text-lg leading-relaxed">{{ image.caption }}</p>
+        <!-- Edit Button -->
+        <button onclick="document.getElementById('edit-description-form').classList.toggle('hidden')" class="px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+            Edit Description
+        </button>
+        <!-- Edit Description Form -->
+        <form id="edit-description-form" action="/gallery/{{ image_id }}/edit" method="post" class="mt-4 hidden">
+            <textarea name="new_description" rows="4" class="w-full p-2 border rounded-lg">{{ image.caption }}</textarea>
+            <button type="submit" class="mt-2 px-4 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition">
+                Save
+            </button>
+        </form>
+    </div>
 
-                            {% if image.tags %}
-                            <p class="text-gray-600">
-                                Tags:
-                                {% for tag in image.tags %}
-                                    <span class="text-blue-600">#{{ tag }}</span>{% if not loop.last %}, {% endif %}
-                                {% endfor %}
-                            </p>
-                            {% endif %}
-                        </div>
-                    </div>
+    <!-- Tags Section -->
+    {% if image.tags %}
+    <div class="space-y-4">
+        <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            Tags
+        </h2>
+        <div class="flex flex-wrap gap-2">
+            {% for tag in image.tags %}
+                <span class="px-4 py-1 bg-indigo-50 text-indigo-600 rounded-full border border-indigo-100 text-sm font-medium hover:bg-indigo-100 transition cursor-pointer">{{ tag }}</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Delete Button -->
+    <form action="/gallery/{{ image_id }}/delete" method="post" class="mt-4">
+        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition">
+            Delete Image
+        </button>
+    </form>
+
+</div>
                 </div>
             </div>
 
             <!-- Related Images Section -->
-            <div class="mt-8">
-                <h2 class="text-xl font-bold mb-4">Related Images</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {% for related in related_images %}
-                        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-                            <a href="/gallery/{{ related.image_id }}" class="block">
-                                <img src="{{ related.uri }}"
+            <div class="mt-12">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">Related Images</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {% for related in image.related_images %}
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition duration-300 border border-gray-100">
+                            <a href="/gallery/{{related.image_id}}" class="block">
+                                <img src="/{{ related.image_path }}"
                                      alt="{{ related.caption }}"
-                                     class="w-full h-48 object-cover hover:opacity-75 transition duration-300">
-                                <div class="p-4">
-                                    <h3 class="text-lg font-semibold">{{ related.title }}</h3>
-                                </div>
+                                     class="w-full h-48 object-cover">
                             </a>
                         </div>
                     {% endfor %}
