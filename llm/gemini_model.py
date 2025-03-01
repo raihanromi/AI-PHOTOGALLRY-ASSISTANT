@@ -2,8 +2,6 @@ import google.generativeai as genai
 import os
 from dotenv import load_dotenv
 from core.constant import PROMPT
-import re
-import ast
 import json
 
 load_dotenv()
@@ -115,34 +113,23 @@ def gemini_classify_intent(prompt):
             # Create a structured prompt to extract image details
             details_prompt = (
                 f"Analyze this request: '{prompt}'\n"
-                "Return only a valid JSON object containing:\n"
+                "Return only a valid object containing:\n"
                 '"number": (integer) number of images requested (default to 5 if not specified),\n'
                 '"sentence": (string) only the words describing the requested image\n'
-                'Ensure the response is a valid JSON object, e.g., {"number": 5, "sentence": "a beautiful sunset"}\n'
+                'Ensure the response is a valid object, e.g., {"number": 5, "sentence": "a beautiful sunset"}\n'
                 'Warning: Dont use backticks (```) in the response, as it will break the JSON format.'
             )
 
             details_response = model.generate_content(details_prompt, generation_config={"temperature": 0.0})
 
             details_text = details_response.text.strip()
-            print(f"Details (raw response): '{details_text}'")  # Debugging step
-
-            # Strip any backticks or non-JSON elements
-            details_text = details_text.replace("```json", "").replace("```", "").strip()
-
-            # Ensure the response is valid JSON format
-            if details_text.startswith("{") and details_text.endswith("}"):
-                try:
-                    details = json.loads(details_text)
-                    print(f"Parsed JSON: {details}")  # Debugging step
-                except json.JSONDecodeError as e:
-                    print(f"Error parsing JSON: {str(e)}")
-                    details = {"number": 5, "sentence": "general"}
-            else:
-                print("Response is not valid JSON, using default values.")
+            
+            try:
+                details = json.loads(details_text)
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON: {str(e)}")
                 details = {"number": 5, "sentence": "general"}
 
-            # Ensure that the response is always a valid JSON object with proper fields
             n_images = details.get("number", 5)
             sentence = details.get("sentence", "general")
 

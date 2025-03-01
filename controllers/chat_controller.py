@@ -74,11 +74,11 @@ def generate_text(session_id, prompt, image, n_results):
 
 def chatbot(session_id: str, prompt: str, image=None):
     intent,details = gemini_classify_intent(prompt)
-
-    #print(f"Intent: {intent}" , "Details: {details}")
+    
     n_results = details.get("number", 5) if details else 5
     modified_prompt = details.get("sentence", "general") if details else "general"
 
+    print(f"Intent: {intent}, Modified Prompt: {modified_prompt}, Number of Results: {n_results}")
 
     
     chat_history = get_or_create_session(session_id)
