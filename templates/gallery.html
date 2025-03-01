@@ -5,74 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ImageChat Hub - Gallery</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .nav-link {
+            position: relative;
+            padding-bottom: 0.25rem;
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #5a67d8;
+            border-radius: 1px;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
-  <!-- Navigation -->
-  <nav class="bg-white shadow-lg p-4 backdrop-blur-md bg-white/90 sticky top-0 z-50">
-      <div class="container mx-auto flex justify-between items-center">
-          <div class="text-2xl font-bold text-indigo-600 flex items-center gap-2 hover:text-indigo-700 transition">
-              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              AI Gallery Assistant
-          </div>
-          <div class="flex gap-8">
-              <a href="/" class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/' %}text-indigo-600 font-medium{% endif %}">Home</a>
-              <a href="/gallery" class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/gallery' %}text-indigo-600 font-medium{% endif %}">Gallery</a>
-              <a href="/upload" class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/upload' %}text-indigo-600 font-medium{% endif %}">Upload</a>
-              <a href="/chat" class="text-gray-600 hover:text-indigo-600 {% if request.url.path == '/chat' %}text-indigo-600 font-medium{% endif %}">Chat</a>
-          </div>
-      </div>
-  </nav>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md p-5 sticky top-0 z-50 backdrop-blur-lg bg-opacity-95">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-2xl font-bold text-indigo-600 flex items-center gap-2 hover:text-indigo-700 transition">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                AI Gallery Assistant
+            </div>
+            <div class="flex gap-10 text-sm font-medium">
+                <a href="/" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/' %}text-indigo-600 active{% endif %}">Home</a>
+                <a href="/gallery" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/gallery' %}text-indigo-600 active{% endif %}">Gallery</a>
+                <a href="/upload" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/upload' %}text-indigo-600 active{% endif %}">Upload</a>
+                <a href="/chat" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/chat' %}text-indigo-600 active{% endif %}">Chat</a>
+            </div>
+        </div>
+    </nav>
 
-  <!-- Main Content -->
-  <div class="container mx-auto px-4 py-8">
-      <div class="flex justify-between items-center mb-6">
-          <h2 class="text-3xl font-bold text-blue-700 border-b-4 border-blue-500 pb-2">Image Gallery</h2>
-      </div>
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-3xl font-bold text-blue-700 border-b-4 border-blue-500 pb-2">Image Gallery</h2>
+        </div>
 
-      <!-- Image Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {% for image in images %}
-              <div class="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                  <a href="/gallery/{{image.image_id}}" class="block">
-                      <div class="aspect-square relative">
-                          <img src="{{ image.uri }}"
-                               alt="{{ image.caption }}"
-                               class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition duration-300"
-                               loading="lazy">
-                          <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-all duration-300"></div>
-                      </div>
-                  </a>
-              </div>
-          {% endfor %}
-      </div>
+        <!-- Image Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {% for image in images %}
+                <div class="group relative bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                    <a href="/gallery/{{image.image_id}}" class="block">
+                        <div class="aspect-square relative">
+                            <img src="{{ image.uri }}"
+                                 alt="{{ image.caption }}"
+                                 class="absolute inset-0 w-full h-full object-cover group-hover:opacity-90 transition duration-300"
+                                 loading="lazy">
+                            <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-all duration-300"></div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
 
-      {% if images|length == 0 %}
-          <div class="text-center py-8">
-              <p class="text-gray-500 text-lg">No images found</p>
-          </div>
-      {% endif %}
+        {% if images|length == 0 %}
+            <div class="text-center py-8">
+                <p class="text-gray-500 text-lg">No images found</p>
+            </div>
+        {% endif %}
 
-      <!-- Pagination -->
-      {% if total_pages > 1 %}
-      <div class="flex justify-center items-center mt-8 space-x-4">
-          {% if current_page > 1 %}
-              <a href="/gallery?page={{ current_page - 1 }}&per_page={{ per_page | default(10) }}"
-   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-    Previous
-</a>
-          {% endif %}
-          <span class="text-gray-700">Page {{ current_page }} of {{ total_pages }}</span>
-          {% if current_page < total_pages %}
-              <a href="/gallery?page={{ current_page + 1 }}&per_page={{ per_page | default(10) }}"
-   class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-    Next
-</a>
-          {% endif %}
-      </div>
-      {% endif %}
-  </div>
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="flex justify-center items-center mt-8 space-x-4">
+            {% if current_page > 1 %}
+                <a href="/gallery?page={{ current_page - 1 }}&per_page={{ per_page | default(10) }}"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Previous
+                </a>
+            {% endif %}
+            <span class="text-gray-700">Page {{ current_page }} of {{ total_pages }}</span>
+            {% if current_page < total_pages %}
+                <a href="/gallery?page={{ current_page + 1 }}&per_page={{ per_page | default(10) }}"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    Next
+                </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </body>
 </html>

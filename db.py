@@ -5,15 +5,16 @@ from datetime import datetime
 import chromadb
 import numpy as np
 import io
-
+from core.constant import DB  # Added import
 
 db = None
 collection = None
 
+
 def init_db():
     """Initialize the ChromaDB database and collection."""
     global db, collection
-    print("Initializing database...")
+    print(DB["INITIALIZING_DB"])
 
     try:
         embedding_function = OpenCLIPEmbeddingFunction()
@@ -28,11 +29,12 @@ def init_db():
         )
 
         if collection:
-            print("Collection initialized successfully")
+            print(DB["COLLECTION_INIT_SUCCESS"])
         else:
-            print("Failed to initialize collection")
+            print(DB["COLLECTION_INIT_FAILURE"])
     except Exception as e:
-        print(f"Error during database initialization: {e}")
+        print(DB["INIT_ERROR"].format(error=str(e)))
+
 
 def add_images(image_id, image_path, caption=None, tags=None):
     """Add an image to the database with metadata."""
@@ -45,10 +47,11 @@ def add_images(image_id, image_path, caption=None, tags=None):
             uris=[image_path],
             metadatas=[{"caption": caption, "tags": tags, "created_at": created_at}]
         )
-        return "Success"
+        return DB["ADD_IMAGE_SUCCESS"]  # Updated return value
     except Exception as e:
-        print(f"Error adding image to DB: {e}")
-        return "Failure"
+        print(DB["ADD_IMAGE_ERROR"].format(error=str(e)))
+        return DB["ADD_IMAGE_FAILURE"]  # Updated return value
+
 
 def get_all_images():
     """Retrieve all images from the database."""
@@ -63,18 +66,17 @@ def get_all_images():
             {
                 "uri": uri,
                 "metadata": metadata,
-                "image_id":image_id
+                "image_id": image_id
             }
-            for uri, metadata,image_id in zip(results["uris"], results["metadatas"],results['ids'])
+            for uri, metadata, image_id in zip(results["uris"], results["metadatas"], results['ids'])
         ]
         images.sort(key=lambda x: x["metadata"]["created_at"], reverse=True)
 
         return images
     except Exception as e:
-        print(f"Error retrieving images: {e}")
+        print(DB["RETRIEVE_IMAGES_ERROR"].format(error=str(e)))
         return []
-    
-    
+
 
 def get_image_by_id(image_id):
     """Retrieve a specific image by its ID."""
@@ -86,8 +88,9 @@ def get_image_by_id(image_id):
         )
         return query_result
     except Exception as e:
-        print(f"Error retrieving image by ID: {e}")
+        print(DB["RETRIEVE_IMAGE_BY_ID_ERROR"].format(error=str(e)))
         return None
+
 
 def query_images_based_on_text(query_text, n_results=10):
     global collection
@@ -99,6 +102,7 @@ def query_images_based_on_text(query_text, n_results=10):
     )
 
     return query_result
+
 
 def query_images_based_on_image(image, n_results=10):
     global collection
@@ -120,20 +124,22 @@ def delete_image_by_id(image_id):
     global collection
     try:
         collection.delete(ids=[image_id])
-        print(f"Image {image_id} deleted from database")
+        print(DB["DELETE_LOG_SUCCESS"].format(image_id=image_id))
     except Exception as e:
-        print(f"Error deleting image from DB: {e}")
+        print(DB["DELETE_LOG_ERROR"].format(error=str(e)))
+
 
 def update_image_description(image_id, new_description):
     """Update the description of an image in the database."""
     global collection
     try:
-        print(f"Updating database for image_id: {image_id} with new_description: {new_description}")
+        print(DB["UPDATE_LOG"].format(image_id=image_id, new_description=new_description))
         collection.update(
             ids=[image_id],
             metadatas=[{"caption": new_description}]
         )
-        print(f"Image {image_id} description updated in database")
+        print(DB["UPDATE_LOG_SUCCESS"].format(image_id=image_id))
     except Exception as e:
-        print(f"Error updating image description in DB: {e}")
+        print(DB["UPDATE_IMAGE_ERROR"].format(error=str(e)))
         raise
+        

@@ -9,126 +9,144 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: linear-gradient(to bottom, #f7fafc, #edf2f7);
         }
         .chat-container {
             scrollbar-width: thin;
-            scrollbar-color: #CBD5E0 #F7FAFC;
+            scrollbar-color: #a0aec0 #edf2f7;
         }
         .chat-container::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         .chat-container::-webkit-scrollbar-track {
-            background: #F7FAFC;
+            background: #edf2f7;
+            border-radius: 12px;
         }
         .chat-container::-webkit-scrollbar-thumb {
-            background-color: #CBD5E0;
-            border-radius: 20px;
+            background: #a0aec0;
+            border-radius: 12px;
+            transition: background 0.2s ease;
+        }
+        .chat-container::-webkit-scrollbar-thumb:hover {
+            background: #718096;
         }
         .message-appear {
             animation: fadeIn 0.3s ease-in-out;
         }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .typing-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
         .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background-color: #6366F1;
+            width: 6px;
+            height: 6px;
+            background: #5a67d8;
             border-radius: 50%;
-            display: inline-block;
-            animation: pulse 1.5s infinite ease-in-out;
+            animation: pulse 1.4s infinite ease-in-out;
         }
-        .typing-indicator span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-        .typing-indicator span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes pulse {
-            0%, 100% { transform: scale(0.75); opacity: 0.5; }
-            50% { transform: scale(1); opacity: 1; }
-        }
-        .textarea-container {
-            position: relative;
+            0%, 100% { transform: scale(0.8); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; }
         }
         .textarea-container textarea {
-            padding-right: 3rem;
+            padding: 0.75rem 2.5rem 0.75rem 1rem;
             transition: all 0.2s ease;
             min-height: 48px;
-            max-height: 12rem;
+            max-height: 10rem;
+            border-radius: 0.75rem;
+            background: #ffffff;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         .textarea-container textarea:focus {
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.05);
+            border-color: #5a67d8;
         }
         .image-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 0.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjusted for better spacing */
+            gap: 1rem; /* Increased gap for clarity */
+            padding: 0.5rem; /* Inner padding for grid */
+        }
+        .image-grid img {
+            aspect-ratio: 4 / 3; /* Consistent image ratio */
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .image-grid img:hover {
+            transform: scale(1.02); /* Slight zoom on hover */
+            opacity: 0.95;
+        }
+        .nav-link {
+            position: relative;
+            padding-bottom: 0.25rem;
+            transition: color 0.2s ease;
+        }
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #5a67d8;
+            border-radius: 1px;
+        }
+        .shadow-hover {
+            transition: box-shadow 0.2s ease;
+        }
+        .shadow-hover:hover {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm p-3 backdrop-blur-md bg-white/90 sticky top-0 z-50">
+    <nav class="bg-white shadow-md p-5 sticky top-0 z-50 backdrop-blur-lg bg-opacity-95">
         <div class="container mx-auto flex justify-between items-center">
-            <div class="text-xl font-bold text-indigo-600 flex items-center gap-2 hover:text-indigo-700 transition">
-                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div class="text-2xl font-bold text-indigo-600 flex items-center gap-2 hover:text-indigo-700 transition">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                 </svg>
                 AI Gallery Assistant
             </div>
-            <div class="flex gap-6">
-                <a href="/" class="text-gray-600 hover:text-indigo-600 transition {% if request.url.path == '/' %}text-indigo-600 font-medium{% endif %}">
-                    Home
-                </a>
-                <a href="/gallery" class="text-gray-600 hover:text-indigo-600 transition {% if request.url.path == '/gallery' %}text-indigo-600 font-medium{% endif %}">
-                    Gallery
-                </a>
-                <a href="/upload" class="text-gray-600 hover:text-indigo-600 transition {% if request.url.path == '/upload' %}text-indigo-600 font-medium{% endif %}">
-                    Upload
-                </a>
-                <a href="/chat" class="text-gray-600 hover:text-indigo-600 transition {% if request.url.path == '/chat' %}text-indigo-600 font-medium{% endif %}">
-                    Chat
-                </a>
+            <div class="flex gap-10 text-sm font-medium">
+                <a href="/" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/' %}text-indigo-600 active{% endif %}">Home</a>
+                <a href="/gallery" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/gallery' %}text-indigo-600 active{% endif %}">Gallery</a>
+                <a href="/upload" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/upload' %}text-indigo-600 active{% endif %}">Upload</a>
+                <a href="/chat" class="nav-link text-gray-600 hover:text-indigo-600 {% if request.url.path == '/chat' %}text-indigo-600 active{% endif %}">Chat</a>
             </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col mx-auto container px-4 md:px-6 py-4 max-w-5xl">
+    <main class="flex-1 container mx-auto px-4 md:px-6 py-8 max-w-4xl">
         <!-- Chat Header -->
-        <div class="pb-4 mb-4 border-b border-gray-200">
-            <h1 class="text-2xl font-semibold text-gray-800">AI Gallery Assistant Chat</h1>
-            <p class="text-gray-500 text-sm mt-1">Ask questions about images or upload your own to chat about</p>
-        </div>
+        <header class="pb-5 mb-5 border-b border-gray-200">
+            <h1 class="text-3xl font-semibold text-gray-900">Chat with AI Gallery Assistant</h1>
+            <p class="text-gray-600 text-sm mt-2">Explore images, ask questions, or upload your own to discuss.</p>
+        </header>
 
         <!-- Chat Messages -->
-        <div id="chat-container" class="chat-container flex-1 overflow-y-auto pb-4 mb-4 space-y-6">
+        <section id="chat-container" class="chat-container flex-1 overflow-y-auto mb-6 space-y-6">
             {% for entry in chat_history %}
                 <!-- User Message -->
                 {% if entry.prompt or entry.image_query %}
                 <div class="flex justify-end message-appear">
                     <div class="max-w-[70%]">
                         {% if entry.prompt %}
-                        <div class="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
-                            <p>{{ entry.prompt }}</p>
+                        <div class="bg-indigo-600 text-white rounded-xl rounded-tr-none px-4 py-3 shadow-md shadow-hover">
+                            <p class="text-sm">{{ entry.prompt }}</p>
                         </div>
                         {% endif %}
-
                         {% if entry.image_query %}
-                        <div class="{% if entry.prompt %}mt-2{% endif %} bg-indigo-600 rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm">
-                            <p class="text-white font-medium mb-2">Image Query:</p>
-                            <img src="{{ entry.image_query }}" alt="Query Image" class="rounded-lg w-full object-contain max-h-96">
+                        <div class="{% if entry.prompt %}mt-3{% endif %} bg-indigo-600 rounded-xl rounded-tr-none px-4 py-3 shadow-md shadow-hover">
+                            <p class="text-white font-medium text-sm mb-2">Image Query:</p>
+                            <img src="{{ entry.image_query }}" alt="User-uploaded image" class="rounded-lg w-full object-contain max-h-80">
                         </div>
                         {% endif %}
-                        <div class="text-xs text-gray-500 mt-1 text-right">You</div>
+                        <div class="text-xs text-gray-500 mt-1.5 text-right">You • Just now</div>
                     </div>
                 </div>
                 {% endif %}
@@ -136,87 +154,77 @@
                 <!-- Assistant Response -->
                 <div class="flex justify-start message-appear">
                     <div class="max-w-[70%]">
-                        <!-- Chat Response -->
                         {% if entry.type == "chat" %}
-                        <div class="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
-                            <p class="text-gray-800">{{ entry.content }}</p>
+                        <div class="bg-white border border-gray-100 rounded-xl rounded-tl-none px-4 py-3 shadow-md shadow-hover">
+                            <p class="text-gray-800 text-sm">{{ entry.content }}</p>
                         </div>
                         {% endif %}
-
-                        <!-- Image Search Results -->
                         {% if entry.images %}
-                        <div class="mt-2 bg-white border border-gray-100 rounded-2xl rounded-tl-sm p-4 shadow-sm">
-                            <p class="text-gray-700 font-medium mb-3">Found images:</p>
+                        <div class="mt-3 bg-white border border-gray-100 rounded-xl rounded-tl-none shadow-md shadow-hover">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-gray-700 font-medium text-sm">Found Images:</p>
+                            </div>
                             <div class="image-grid">
                                 {% for image in entry.images %}
-                                <div class="relative group">
-                                    <img
-                                        src="/{{ image['image_path'] }}"
-                                        alt="Result Image"
-                                        class="rounded-lg w-full h-36 object-cover cursor-pointer transition hover:opacity-90 hover:shadow-md"
-                                        onclick="openModal(this.src)"
-                                    >
-                                </div>
+                                <img
+                                    src="/{{ image['image_path'] }}"
+                                    alt="Gallery image"
+                                    class="rounded-lg w-full object-cover cursor-pointer"
+                                    onclick="openModal(this.src)">
                                 {% endfor %}
                             </div>
                         </div>
                         {% endif %}
-
-                        <!-- Combined Summary -->
                         {% if entry.combined_summary %}
-                        <div class="mt-2 bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
-                            <p class="text-gray-600">{{ entry.combined_summary }}</p>
+                        <div class="mt-3 bg-white border border-gray-100 rounded-xl rounded-tl-none px-4 py-3 shadow-md shadow-hover">
+                            <p class="text-gray-600 text-sm">{{ entry.combined_summary }}</p>
                         </div>
                         {% endif %}
-
-                        <div class="text-xs text-gray-500 mt-1 ml-1">AI Assistant</div>
+                        <div class="text-xs text-gray-500 mt-1.5">AI Assistant • Just now</div>
                     </div>
                 </div>
             {% endfor %}
-        </div>
+        </section>
 
         <!-- Empty State -->
         {% if not chat_history %}
-        <div class="flex-1 flex flex-col items-center justify-center text-center p-6 message-appear">
-            <div class="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        <div class="flex-1 flex flex-col items-center justify-center text-center py-12 message-appear">
+            <div class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                <svg class="w-10 h-10 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
                 </svg>
             </div>
-            <h2 class="text-xl font-semibold text-gray-800 mb-2">Start a new conversation</h2>
-            <p class="text-gray-500 max-w-md mb-6">Ask questions about images in our gallery or upload your own image to analyze and discuss.</p>
+            <h2 class="text-xl font-medium text-gray-800 mb-2">No messages yet</h2>
+            <p class="text-gray-600 text-sm max-w-lg">Start by asking about images in our gallery or upload your own to chat about.</p>
         </div>
         {% endif %}
 
         <!-- Input Section -->
-        <div class="sticky bottom-0 bg-gradient-to-t from-gray-50 via-gray-50 pt-4">
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
+        <footer class="sticky bottom-0 bg-gradient-to-t from-gray-50 pt-6 pb-4">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
                 <form action="/generate" method="POST" enctype="multipart/form-data" id="upload-form" class="space-y-3">
-                    <!-- Image Preview -->
                     <div id="preview-container" class="hidden">
                         <div class="relative inline-block">
-                            <img id="image-preview" class="h-24 rounded-lg object-cover" alt="Preview">
-                            <button type="button" id="remove-image" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm hover:bg-red-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            <img id="image-preview" class="h-20 rounded-lg object-cover shadow-sm" alt="Image preview">
+                            <button type="button" id="remove-image" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-sm hover:bg-red-600 transition">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                                 </svg>
                             </button>
                         </div>
                     </div>
-
-                    <div class="flex items-stretch gap-2">
+                    <div class="flex items-stretch gap-3">
                         <div class="textarea-container flex-grow relative">
                             <textarea
                                 id="unified-input"
                                 name="prompt"
-                                class="w-full h-12 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none overflow-hidden"
+                                class="w-full text-sm border-gray-200 focus:ring-indigo-500 focus:border-indigo-500 resize-none overflow-y-auto"
                                 placeholder="Type a message or upload an image..."
-                                rows="1"
-                            ></textarea>
-                            <div class="absolute right-3 bottom-3 flex gap-2">
+                                rows="1"></textarea>
+                            <div class="absolute right-2.5 bottom-2.5 flex gap-2">
                                 <label for="image-upload" class="cursor-pointer text-gray-400 hover:text-indigo-500 transition">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                     </svg>
                                     <input id="image-upload" name="image" type="file" class="hidden" accept="image/*">
                                 </label>
@@ -225,9 +233,8 @@
                         <button
                             type="submit"
                             id="send-button"
-                            class="h-12 px-5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center gap-2 disabled:opacity-60"
-                            disabled
-                        >
+                            class="h-12 px-5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled>
                             <span id="send-text">Send</span>
                             <span id="loading-spinner" class="hidden">
                                 <div class="typing-indicator">
@@ -237,30 +244,30 @@
                                 </div>
                             </span>
                             <svg id="send-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                             </svg>
                         </button>
                     </div>
-                    <div id="file-info" class="text-sm text-gray-500 hidden"></div>
+                    <div id="file-info" class="text-xs text-gray-500 hidden"></div>
                 </form>
             </div>
-        </div>
-    </div>
+        </footer>
+    </main>
 
     <!-- Image Preview Modal -->
-    <div id="image-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg p-4 max-w-3xl mx-auto">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-semibold text-gray-800">Image Preview</h3>
-                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+    <div id="image-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-6 z-50">
+        <div class="bg-white rounded-xl p-5 max-w-4xl w-full mx-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-800">Image Preview</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600 transition">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
-            <img id="modal-image" src="" alt="Preview" class="rounded-lg w-full object-contain max-h-[70vh]">
-            <div class="mt-4 flex justify-end">
-                <button id="close-modal-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+            <img id="modal-image" src="" alt="Full-size preview" class="rounded-lg w-full object-contain max-h-[75vh]">
+            <div class="mt-5 flex justify-end">
+                <button id="close-modal-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Close
                 </button>
             </div>
@@ -268,17 +275,17 @@
     </div>
 
     <!-- Error Message Toast -->
-    <div id="error-message" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg shadow-xl z-50">
-        <div class="flex items-center">
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div id="error-message" class="hidden fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-5 py-2.5 rounded-lg shadow-xl z-50 transition-opacity duration-300">
+        <div class="flex items-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            <p id="error-text">An error occurred. Please try again.</p>
+            <p id="error-text" class="text-sm">An error occurred. Please try again.</p>
         </div>
     </div>
 
     <script>
-        // Auto-resize textarea
+        // [Original JavaScript remains unchanged]
         const textarea = document.getElementById('unified-input');
         textarea.addEventListener('input', function() {
             this.style.height = '48px';
@@ -286,7 +293,6 @@
             checkFormValidity();
         });
 
-        // Display file name and preview when an image is selected
         const imageUpload = document.getElementById('image-upload');
         const fileInfo = document.getElementById('file-info');
         const previewContainer = document.getElementById('preview-container');
@@ -303,21 +309,15 @@
                 fileInfo.textContent = `Selected: ${file.name}`;
                 fileInfo.classList.remove('hidden');
                 previewContainer.classList.remove('hidden');
-
                 textarea.placeholder = "Add a message with your image (optional)...";
-
-                // Create image preview
                 const reader = new FileReader();
                 reader.onload = function (event) {
                     imagePreview.src = event.target.result;
                 };
-
-                // Add error handling for FileReader
                 reader.onerror = function() {
                     showError('Error loading image preview');
                     fileInfo.textContent = 'Error loading image preview';
                 };
-
                 reader.readAsDataURL(file);
             } else {
                 clearImagePreview();
@@ -326,7 +326,6 @@
             checkFormValidity();
         });
 
-        // Remove image preview
         removeImageBtn.addEventListener('click', function() {
             imageUpload.value = '';
             clearImagePreview();
@@ -340,36 +339,29 @@
             imagePreview.src = '';
         }
 
-        // Auto-scroll to bottom when new content is added
         function scrollToBottom() {
             const chatContainer = document.getElementById('chat-container');
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        // Scroll to bottom on page load
         window.addEventListener('load', scrollToBottom);
 
-        // Check if the form has either text input or an image before enabling "Send" button
         function checkFormValidity() {
             const hasText = textarea.value.trim().length > 0;
             const hasImage = imageUpload.files.length > 0;
             sendButton.disabled = !(hasText || hasImage);
         }
 
-        // Initial check on page load
         checkFormValidity();
 
-        // Function to clear UI and reset session
         function clearChatSession() {
-            document.getElementById('chat-container').innerHTML = ""; // Remove previous chat history
+            document.getElementById('chat-container').innerHTML = "";
         }
 
-        // Detect if session has restarted (new visit)
         if (!document.cookie.includes("chat_session")) {
             clearChatSession();
         }
 
-        // Image Preview Modal
         const imageModal = document.getElementById('image-modal');
         const modalImage = document.getElementById('modal-image');
         const closeModal = document.getElementById('close-modal');
@@ -394,14 +386,12 @@
             }
         });
 
-        // Escape key to close modal
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && !imageModal.classList.contains('hidden')) {
                 closeModalFunction();
             }
         });
 
-        // Error Handling
         function showError(message) {
             const errorMessage = document.getElementById('error-message');
             const errorText = document.getElementById('error-text');
@@ -412,7 +402,6 @@
             }, 5000);
         }
 
-        // Form Submission
         const form = document.getElementById('upload-form');
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
@@ -440,13 +429,11 @@
                     throw new Error('Request failed');
                 }
 
-                // Clear inputs and reset button
                 textarea.value = "";
                 textarea.style.height = '48px';
                 imageUpload.value = "";
                 clearImagePreview();
 
-                // Reload the page to show updated chat history
                 window.location.reload();
             } catch (error) {
                 showError('An error occurred. Please try again.');

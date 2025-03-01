@@ -1,9 +1,10 @@
 from PIL import Image
 from io import BytesIO
-from multimodel.gemini_model import gemini_image_description,verify_image_similarity
+from llm.gemini_model import gemini_image_description, verify_image_similarity
+from core.constant import UTILS
+import re
 
 def filter_query_response(query_response):
-
     image_path = query_response['uris'][0]
     metadatas = query_response['metadatas'][0]
     image_ids = query_response['ids'][0]
@@ -17,7 +18,6 @@ def filter_query_response(query_response):
         })
 
     return images
-
 
 def enforce_size_limit(image_bytes, max_size_kb=100):
     """Ensure the image is under the specified size (default: 100KB), otherwise resize/compress it."""
@@ -49,12 +49,11 @@ def enforce_size_limit(image_bytes, max_size_kb=100):
 
             # Stop if the image becomes too small (e.g., below 100x100 pixels)
             if new_width < 100 or new_height < 100:
-                raise ValueError("Image is too large and cannot be compressed below the size limit without significant quality loss.")
+                raise ValueError(UTILS['COMPRESSION_FAILURE'])
 
         return image_bytes
     except Exception as e:
-        raise ValueError(f"Failed to compress image: {str(e)}")
-
+        raise ValueError(f"{UTILS['COMPRESSION_ERROR']}: {str(e)}")
 
 def convert_to_jpg(image_bytes):
     """Convert the image to JPEG format."""
@@ -64,4 +63,4 @@ def convert_to_jpg(image_bytes):
         image.convert("RGB").save(output, format="JPEG", quality=85)
         return output.getvalue()
     except Exception as e:
-        raise ValueError(f"Failed to convert image to JPEG: {str(e)}")
+        raise ValueError(f"{UTILS['CONVERSION_ERROR']}: {str(e)}")
