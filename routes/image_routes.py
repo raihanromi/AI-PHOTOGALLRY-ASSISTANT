@@ -26,7 +26,7 @@ async def upload_file(request: Request, files: List[UploadFile] = File(...)):
 
 
 @router.get("/gallery", response_class=HTMLResponse)
-async def gallery(request: Request, page: int = Query(1, ge=1), per_page: int = Query(10, ge=1)):
+async def gallery(request: Request, page: int = Query(1, ge=1), per_page: int = Query(20, ge=1)):
     try:
         gallery_images, total_pages = image_controller.get_gallery_images(page, per_page)
 

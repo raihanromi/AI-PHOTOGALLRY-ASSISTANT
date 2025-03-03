@@ -3,6 +3,8 @@ import os
 from dotenv import load_dotenv
 from core.constant import PROMPT
 import json
+import PIL.Image
+from io import BytesIO
 
 load_dotenv()
 
@@ -14,15 +16,17 @@ model = genai.GenerativeModel('gemini-2.0-flash')
 
 
 # Retrieve image description and tags
-def gemini_image_analysis(image_path):
+def gemini_image_analysis(llm_jpg_image):
     try:
-        if not image_path:
+        if not llm_jpg_image:
             return {"description": PROMPT['NO_IMAGE_DATA'], "tags": PROMPT['NO_IMAGE_DATA']}
 
-        image = genai.upload_file(image_path)
+        
         prompt = PROMPT['IMAGE_ANALYSIS_PROMPT']
 
-        response = model.generate_content([prompt, image])
+        image = PIL.Image.open(BytesIO(llm_jpg_image))
+
+        response = model.generate_content([prompt,image])
         text = response.text if hasattr(response, 'text') else PROMPT['NO_ANALYSIS_GENERATED']
 
         # Parse the response
@@ -115,7 +119,7 @@ def gemini_classify_intent(prompt):
                 f"Analyze this request: '{prompt}'\n"
                 "Return only a valid object containing:\n"
                 '"number": (integer) number of images requested (default to 5 if not specified),\n'
-                '"sentence": (string) only the words describing the requested image\n'
+                '"sentence": (string) only the sentence describing the requested image\n'
                 'Ensure the response is a valid object, e.g., {"number": 5, "sentence": "a beautiful sunset"}\n'
                 'Warning: Dont use backticks (```) in the response, as it will break the JSON format.'
             )

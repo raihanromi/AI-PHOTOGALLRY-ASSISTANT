@@ -16,7 +16,7 @@ def get_or_create_session(session_id: str):
         chat_sessions[session_id] = []
     return chat_sessions[session_id]
 
-def generate_text(session_id, prompt, image, n_results):
+def generate_text(session_id, prompt, modified_prompt, image, n_results):
     chat_history = get_or_create_session(session_id)
     chat_entry = {"prompt": prompt, "images": [], "image_query": None, "combined_summary": None}
 
@@ -53,9 +53,9 @@ def generate_text(session_id, prompt, image, n_results):
 
     # text only
     elif prompt:
-        query_response = query_images_based_on_text(prompt, n_results=n_results)
+        query_response = query_images_based_on_text(modified_prompt, n_results=n_results)
         ranked_images = filter_query_response(query_response)
-        filtered_images = [img for img in ranked_images if verify_image_similarity(img["caption"], prompt)]
+        filtered_images = [img for img in ranked_images if verify_image_similarity(img["caption"], modified_prompt)]
         chat_entry["images"] = filtered_images
 
     if not chat_entry["images"]:
@@ -84,7 +84,7 @@ def chatbot(session_id: str, prompt: str, image=None):
     chat_history = get_or_create_session(session_id)
 
     if intent == "image_search" or (image and image.size):
-        generate_text(session_id, modified_prompt, image, n_results=n_results)
+        generate_text(session_id,prompt, modified_prompt, image, n_results=n_results)
     else:
         previous_context = "\n".join(
             [f"User: {entry['prompt']}\nBot: {entry['combined_summary']}\nImages: {', '.join([img['caption'] for img in entry['images']])}\nImage Paths: {entry['image_query']}"

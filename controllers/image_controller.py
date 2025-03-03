@@ -30,21 +30,23 @@ def upload_file(files):
                 # Read file data
                 image_bytes = file.file.read()
 
-                # Process image
-                image_bytes = enforce_size_limit(image_bytes, max_size_kb=100)
-                jpg_image = convert_to_jpg(image_bytes)
-
                 # Generate unique ID and path
                 image_id = str(uuid.uuid4()) + ".jpg"
                 image_path = str(IMAGEDIR / image_id)
 
-                # Save to disk
+                # Save to original image disk
                 with open(image_path, "wb") as f:
-                    f.write(jpg_image)
+                    f.write(image_bytes)
+
+                print(f"image add : {image_id}")
 
                 # Analyze image content
                 try:
-                    analysis = gemini_image_analysis(image_path)
+                    # Process image
+                    image_bytes = enforce_size_limit(image_bytes, max_size_kb=100)
+                    llm_jpg_image = convert_to_jpg(image_bytes)
+
+                    analysis = gemini_image_analysis(llm_jpg_image)
                     description = analysis.get("description", IMAGE_CONTROLLER["ANALYSIS_DEFAULT_DESCRIPTION"])
                     tags = analysis.get("tags", IMAGE_CONTROLLER["ANALYSIS_DEFAULT_TAGS"])
                 except Exception as e:
@@ -68,7 +70,7 @@ def upload_file(files):
         return {"status": "error", "message": str(e)}
 
 
-def get_gallery_images(page=1, per_page=10):
+def get_gallery_images(page=1, per_page=20):
     """
     Retrieve paginated gallery images from the vector database.
     """
