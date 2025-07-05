@@ -4,6 +4,11 @@
 
 The AI Gallery Assistant is a web application that allows users to upload, organize, and discover images through natural conversations with an AI assistant. The application leverages advanced image recognition and natural language processing to provide intelligent image search and management capabilities.
 
+## Project SceenShot
+<img width="942" height="981" alt="Image" src="https://github.com/user-attachments/assets/c82e6b6e-17d1-4481-aca5-2cd7f29a7398" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/4277daed-d50a-4b7b-acd4-a15773039035" />
+<img width="1920" height="1080" alt="Image" src="https://github.com/user-attachments/assets/92185e7f-26cd-4721-961e-08f1c2a6b8c4" />
+
 ## Project Structure
 
 ````
